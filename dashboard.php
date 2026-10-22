@@ -283,7 +283,27 @@ render_page_start('dashboard', 'Attendance overview');
                             <strong>Manage Students</strong>
                             <span>Add, edit and deactivate student records</span>
                         </span>
-                        <span class="badge badge-grey">Phase 4</span>
+                        <span class="badge badge-green">Live</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="quick-card" href="csv-import.php">
+                        <span class="quick-icon quick-icon-green" aria-hidden="true"><?= app_icon('upload') ?></span>
+                        <span class="quick-text">
+                            <strong>Import Students (CSV)</strong>
+                            <span>Bulk upload a validated CSV of roll numbers</span>
+                        </span>
+                        <span class="badge badge-green">Live</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="quick-card" href="ocr-import.php">
+                        <span class="quick-icon quick-icon-violet" aria-hidden="true"><?= app_icon('scan') ?></span>
+                        <span class="quick-text">
+                            <strong>Import Students (OCR)</strong>
+                            <span>Read a printed list from a photo with real OCR</span>
+                        </span>
+                        <span class="badge badge-green">Live</span>
                     </a>
                 </li>
                 <li>
@@ -293,7 +313,7 @@ render_page_start('dashboard', 'Attendance overview');
                             <strong>Manage Classes</strong>
                             <span>Departments, academic years and divisions</span>
                         </span>
-                        <span class="badge badge-grey">Phase 4</span>
+                        <span class="badge badge-grey">Planned</span>
                     </a>
                 </li>
                 <li>
@@ -303,7 +323,7 @@ render_page_start('dashboard', 'Attendance overview');
                             <strong>Manage Subjects</strong>
                             <span>Subject codes and names per class</span>
                         </span>
-                        <span class="badge badge-grey">Phase 4</span>
+                        <span class="badge badge-grey">Planned</span>
                     </a>
                 </li>
                 <li>

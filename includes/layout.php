@@ -11,10 +11,11 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../config/helpers.php';
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/security.php';
 
 const APP_NAME    = 'SMART ATTENDANCE AI';
-const APP_PHASE   = 'PHASE 3 — DASHBOARD UI';
-const APP_VERSION = '0.3.0';
+const APP_PHASE   = 'PHASE 4 — STUDENT MANAGEMENT';
+const APP_VERSION = '0.4.0';
 
 /**
  * Navigation model. `phase` marks screens that are not implemented yet.
@@ -23,13 +24,15 @@ function app_nav_items(): array
 {
     return [
         ['key' => 'dashboard',  'label' => 'Dashboard',         'href' => 'dashboard.php',         'icon' => 'grid',   'phase' => null],
-        ['key' => 'students',   'label' => 'Students',          'href' => 'students.php',          'icon' => 'users',  'phase' => 'Phase 4'],
-        ['key' => 'classes',    'label' => 'Classes',           'href' => 'classes.php',           'icon' => 'school', 'phase' => 'Phase 4'],
-        ['key' => 'subjects',   'label' => 'Subjects',          'href' => 'subjects.php',          'icon' => 'book',   'phase' => 'Phase 4'],
+        ['key' => 'students',   'label' => 'Students',          'href' => 'students.php',          'icon' => 'users',  'phase' => null],
+        ['key' => 'csv',        'label' => 'CSV Import',        'href' => 'csv-import.php',        'icon' => 'upload', 'phase' => null],
+        ['key' => 'ocr',        'label' => 'OCR Import',        'href' => 'ocr-import.php',        'icon' => 'scan',   'phase' => null],
+        ['key' => 'classes',    'label' => 'Classes',           'href' => 'classes.php',           'icon' => 'school', 'phase' => 'Planned'],
+        ['key' => 'subjects',   'label' => 'Subjects',          'href' => 'subjects.php',          'icon' => 'book',   'phase' => 'Planned'],
         ['key' => 'manual',     'label' => 'Manual Attendance', 'href' => 'manual-attendance.php', 'icon' => 'check',  'phase' => 'Phase 5'],
         ['key' => 'qr',         'label' => 'QR Attendance',     'href' => 'qr-attendance.php',     'icon' => 'qr',     'phase' => 'Phase 6'],
         ['key' => 'reports',    'label' => 'Reports',           'href' => 'reports.php',          'icon' => 'chart',  'phase' => 'Phase 7'],
-        ['key' => 'settings',   'label' => 'Settings',          'href' => 'settings.php',          'icon' => 'gear',   'phase' => 'Phase 4'],
+        ['key' => 'settings',   'label' => 'Settings',          'href' => 'settings.php',          'icon' => 'gear',   'phase' => 'Planned'],
     ];
 }
 
@@ -48,6 +51,11 @@ function app_icon(string $name, string $class = 'app-icon'): string
         'menu'   => '<path d="M4 7h16M4 12h16M4 17h16"/>',
         'close'  => '<path d="M6 6l12 12M18 6 6 18"/>',
         'spark'  => '<path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>',
+        'upload' => '<path d="M12 15V4"/><path d="m8 8 4-4 4 4"/><path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16"/>',
+        'scan'   => '<rect x="3.5" y="4" width="17" height="14" rx="2"/><path d="M3.5 9h17"/><path d="M7 20h10"/><path d="M8.5 13.5h7"/><path d="M8.5 16h4"/>',
+        'pen'    => '<path d="M16.5 4.5 19.5 7.5 8 19H5v-3z"/><path d="m14.5 6.5 3 3"/>',
+        'plus'   => '<path d="M12 5v14M5 12h14"/>',
+        'trash'  => '<path d="M4 7h16"/><path d="M9.5 7V5.2A1.2 1.2 0 0 1 10.7 4h2.6a1.2 1.2 0 0 1 1.2 1.2V7"/><path d="M6.5 7l.8 12.1A1.5 1.5 0 0 0 8.8 20.5h6.4a1.5 1.5 0 0 0 1.5-1.4L17.5 7"/>',
     ];
 
     $body = $paths[$name] ?? $paths['grid'];
@@ -153,6 +161,7 @@ function render_page_start(string $navKey, string $pageTitle): void
         </header>
 
         <main class="app-content" id="main-content">
+        <?php render_flash(); ?>
         <?php
 }
 
@@ -222,4 +231,123 @@ function render_empty_state(string $title, string $text, string $icon = 'spark')
         <p class="empty-text"><?= e($text) ?></p>
     </div>
     <?php
+}
+
+/**
+ * Renders queued flash messages at the top of the page content.
+ */
+function render_flash(): void
+{
+    $messages = flash_take();
+
+    if ($messages === []) {
+        return;
+    }
+
+    foreach ($messages as $message) {
+        $type    = (string) ($message['type'] ?? 'info');
+        $text    = (string) ($message['message'] ?? '');
+        $classes = match ($type) {
+            'success' => 'flash flash-success',
+            'error'   => 'flash flash-error',
+            default   => 'flash flash-info',
+        };
+        ?>
+        <div class="<?= e($classes) ?>" role="status">
+            <span class="dot dot-<?= $type === 'success' ? 'green' : ($type === 'error' ? 'red' : 'blue') ?>" aria-hidden="true"></span>
+            <p><?= e($text) ?></p>
+        </div>
+        <?php
+    }
+}
+
+/**
+ * Renders one form field with label, control, hint and error message.
+ *
+ * @param array $field {
+ *     @type string $name
+ *     @type string $label
+ *     @type string $type    input | textarea | select
+ *     @type string $value
+ *     @type string $hint
+ *     @type string $error
+ *     @type array  $options For select: [['value' => '', 'label' => '', 'selected' => bool]]
+ *     @type string $required
+ * }
+ */
+function render_field(array $field): void
+{
+    $name     = (string) ($field['name'] ?? 'field');
+    $label    = (string) ($field['label'] ?? $name);
+    $type     = (string) ($field['type'] ?? 'input');
+    $value    = (string) ($field['value'] ?? '');
+    $hint     = (string) ($field['hint'] ?? '');
+    $error    = (string) ($field['error'] ?? '');
+    $options  = $field['options'] ?? [];
+    $required = (bool) ($field['required'] ?? false);
+    $invalid  = $error !== '' ? ' is-invalid' : '';
+    $hintId   = $name . '-hint';
+    $errorId  = $name . '-error';
+
+    $described = [];
+
+    if ($hint !== '') {
+        $described[] = $hintId;
+    }
+
+    if ($error !== '') {
+        $described[] = $errorId;
+    }
+
+    $describedBy = $described === [] ? '' : ' aria-describedby="' . e(implode(' ', $described)) . '"';
+    ?>
+    <div class="field<?= $invalid ?>">
+        <label class="field-label" for="<?= e($name) ?>">
+            <?= e($label) ?>
+            <?php if ($required): ?><span class="field-req" aria-hidden="true">*</span><?php endif; ?>
+        </label>
+
+        <?php if ($type === 'textarea'): ?>
+            <textarea class="field-control" id="<?= e($name) ?>" name="<?= e($name) ?>"
+                      rows="3" <?= $describedBy ?>><?= e($value) ?></textarea>
+        <?php elseif ($type === 'select'): ?>
+            <select class="field-control" id="<?= e($name) ?>" name="<?= e($name) ?>" <?= $describedBy ?>>
+                <?php foreach ($options as $option): ?>
+                    <option value="<?= e((string) ($option['value'] ?? '')) ?>"
+                        <?= !empty($option['selected']) ? 'selected' : '' ?>>
+                        <?= e((string) ($option['label'] ?? '')) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        <?php else: ?>
+            <input class="field-control" type="<?= e($type) ?>" id="<?= e($name) ?>" name="<?= e($name) ?>"
+                   value="<?= e($value) ?>"
+                   <?= $required ? 'required' : '' ?>
+                   <?= $describedBy ?>>
+        <?php endif; ?>
+
+        <?php if ($hint !== ''): ?>
+            <p class="field-hint" id="<?= e($hintId) ?>"><?= e($hint) ?></p>
+        <?php endif; ?>
+
+        <?php if ($error !== ''): ?>
+            <p class="field-error" id="<?= e($errorId) ?>"><?= e($error) ?></p>
+        <?php endif; ?>
+    </div>
+    <?php
+}
+
+/**
+ * Renders a small status badge for an import row.
+ */
+function render_row_status(string $status): string
+{
+    return match ($status) {
+        'valid'     => '<span class="badge badge-green">Ready</span>',
+        'duplicate' => '<span class="badge badge-grey">Skipped</span>',
+        'conflict'  => '<span class="badge badge-amber">Conflict</span>',
+        'invalid'   => '<span class="badge badge-red">Invalid</span>',
+        'review'    => '<span class="badge badge-blue">Review</span>',
+        default     => '<span class="badge badge-grey">' . e(ucfirst($status)) . '</span>',
+    };
 }

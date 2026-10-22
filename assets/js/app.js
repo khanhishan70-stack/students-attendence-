@@ -227,4 +227,65 @@
         element.textContent = formatNumber(0, decimals) + suffix;
         window.requestAnimationFrame(step);
     });
+
+    /* ---------------------------------------------------------------
+     * Phase 4: confirm dialog on destructive forms
+     * --------------------------------------------------------------- */
+    var confirmForms = Array.prototype.slice.call(document.querySelectorAll('form[data-confirm]'));
+
+    confirmForms.forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            var message = form.getAttribute('data-confirm-text') || 'Are you sure?';
+
+            if (!window.confirm(message)) {
+                event.preventDefault();
+            }
+        });
+    });
+
+    /* ---------------------------------------------------------------
+     * Phase 4: autofill the academic year from the selected class
+     * --------------------------------------------------------------- */
+    var classSelects = Array.prototype.slice.call(document.querySelectorAll('select[data-class-select]'));
+
+    classSelects.forEach(function (select) {
+        var targetSelector = select.getAttribute('data-year-target');
+        var target = targetSelector ? document.querySelector(targetSelector) : null;
+
+        function syncYear() {
+            if (!target) {
+                return;
+            }
+
+            var option = select.options[select.selectedIndex];
+            var year = option ? option.getAttribute('data-year') : '';
+
+            target.textContent = year || 'chosen with the class';
+        }
+
+        select.addEventListener('change', syncYear);
+        syncYear();
+    });
+
+    /* ---------------------------------------------------------------
+     * Phase 4: file input shows the chosen file name
+     * --------------------------------------------------------------- */
+    var fileInputs = Array.prototype.slice.call(document.querySelectorAll('input[type="file"].field-file'));
+
+    fileInputs.forEach(function (input) {
+        var hint = input.parentNode ? input.parentNode.querySelector('.field-hint') : null;
+        var original = hint ? hint.textContent : '';
+
+        input.addEventListener('change', function () {
+            if (!hint) {
+                return;
+            }
+
+            if (input.files && input.files.length > 0) {
+                hint.textContent = 'Selected: ' + input.files[0].name;
+            } else {
+                hint.textContent = original;
+            }
+        });
+    });
 })();

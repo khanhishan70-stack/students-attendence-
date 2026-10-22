@@ -1965,6 +1965,386 @@ body.nav-open .app-sidebar {
     color: #fca5a5;
 }
 
+/* ---------------------------------------------------------------------------
+ * Phase 4: page head, forms, filters, flash, upload, pagination
+ * ------------------------------------------------------------------------ */
+
+.page-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.2rem;
+}
+
+.page-head-copy {
+    min-width: 0;
+}
+
+.page-kicker {
+    color: var(--green);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.page-title {
+    margin-top: 0.35rem;
+    font-size: 1.55rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.page-sub {
+    margin-top: 0.4rem;
+    max-width: 62ch;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.page-head-actions,
+.head-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.panel-body {
+    padding: 1.15rem 1.3rem;
+}
+
+.flash {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    margin-bottom: 1.1rem;
+    padding: 0.85rem 1.1rem;
+    border: 1px solid var(--line);
+    border-left-width: 3px;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    background: rgba(12, 26, 51, 0.6);
+    font-size: 0.88rem;
+    color: #c2d2ec;
+}
+
+.flash .dot {
+    margin-top: 0.45em;
+    flex-shrink: 0;
+}
+
+.flash-success {
+    border-left-color: var(--green);
+    background: rgba(52, 211, 153, 0.07);
+}
+
+.flash-error {
+    border-left-color: #f87171;
+    background: rgba(248, 113, 113, 0.07);
+}
+
+.flash-info {
+    border-left-color: var(--blue);
+    background: var(--blue-soft);
+}
+
+.dot-blue {
+    background: var(--blue);
+}
+
+/* --- Forms ------------------------------------------------------------- */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem 1.2rem;
+    align-items: start;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.field-label {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.field-req {
+    color: #f87171;
+    margin-left: 0.15rem;
+}
+
+.field-control {
+    width: 100%;
+    min-height: 42px;
+    padding: 0.55rem 0.85rem;
+    font: inherit;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: rgba(8, 18, 36, 0.6);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.field-control:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.22);
+}
+
+.field-control::placeholder {
+    color: #5f7396;
+}
+
+.field-control:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+select.field-control {
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, #7f93b5 50%),
+                      linear-gradient(135deg, #7f93b5 50%, transparent 50%);
+    background-position: calc(100% - 18px) 18px, calc(100% - 12px) 18px;
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+    padding-right: 2.2rem;
+}
+
+textarea.field-control {
+    min-height: 84px;
+    resize: vertical;
+}
+
+.field-file {
+    padding: 0.5rem;
+}
+
+.field-hint {
+    color: #7f93b5;
+    font-size: 0.76rem;
+}
+
+.field-error {
+    color: #fca5a5;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.field.is-invalid .field-control {
+    border-color: rgba(248, 113, 113, 0.55);
+}
+
+.form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    padding-top: 0.6rem;
+}
+
+/* --- Buttons (small / inline) ------------------------------------------ */
+
+.btn-sm {
+    min-height: 34px;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.78rem;
+}
+
+.btn[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn[disabled]:hover {
+    transform: none;
+}
+
+/* --- Filters ----------------------------------------------------------- */
+
+.filter-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem 1.2rem;
+    align-items: end;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: end;
+}
+
+/* --- Row actions ------------------------------------------------------- */
+
+.row-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.row-actions form {
+    display: inline-flex;
+}
+
+/* --- Enrolment block --------------------------------------------------- */
+
+.enroll-block {
+    margin-top: 1.5rem;
+    padding-top: 1.3rem;
+    border-top: 1px solid var(--line);
+}
+
+.enroll-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.enroll-list {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0.9rem 0;
+    padding: 0;
+    list-style: none;
+}
+
+.enroll-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.6rem 0.9rem;
+    background: rgba(12, 26, 51, 0.55);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+}
+
+.enroll-form {
+    margin-top: 0.9rem;
+}
+
+.enroll-row {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: 0.35rem;
+}
+
+.enroll-row .field-control {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* --- Upload / import tables -------------------------------------------- */
+
+.panel-actions {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.panel-actions form {
+    display: inline-flex;
+}
+
+.raw-text {
+    margin-top: 1.2rem;
+    border-top: 1px solid var(--line);
+    padding-top: 0.9rem;
+}
+
+.raw-text summary {
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.raw-text-body {
+    margin: 0.8rem 0 0;
+    padding: 0.9rem;
+    max-height: 260px;
+    overflow: auto;
+    font-family: "Cascadia Mono", "Consolas", monospace;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: #b6c4db;
+    background: rgba(5, 12, 24, 0.7);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.field-inline {
+    min-height: 34px;
+    min-width: 130px;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.82rem;
+}
+
+.stat-grid-compact {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.stat-grid-compact .stat-card {
+    padding: 0.9rem 1.1rem;
+}
+
+.stat-grid-compact .stat-value {
+    font-size: 1.4rem;
+}
+
+/* --- Pagination -------------------------------------------------------- */
+
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 1rem 1.3rem 1.2rem;
+    border-top: 1px solid var(--line);
+}
+
+.pagination-link {
+    display: grid;
+    place-items: center;
+    min-width: 34px;
+    min-height: 34px;
+    padding: 0 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.pagination-link:hover {
+    border-color: var(--line-strong);
+    background: rgba(148, 180, 235, 0.06);
+}
+
+.pagination-link.is-current {
+    color: #04101f;
+    background: var(--green);
+    border-color: var(--green);
+}
+
 @media (max-width: 1180px) {
     .dash-grid {
         grid-template-columns: minmax(0, 1fr);
@@ -2007,6 +2387,65 @@ body.nav-open .app-sidebar {
 @media (max-width: 720px) {
     .app-content {
         width: min(100% - 1.4rem, 1400px);
+    }
+
+    .page-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .page-title {
+        font-size: 1.3rem;
+    }
+
+    .form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .filter-bar {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .filter-actions,
+    .form-actions,
+    .panel-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-actions .btn,
+    .form-actions .btn,
+    .panel-actions .btn {
+        width: 100%;
+    }
+
+    .panel-actions form {
+        width: 100%;
+    }
+
+    .panel-actions form .btn {
+        width: 100%;
+    }
+
+    .row-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .row-actions form {
+        width: 100%;
+    }
+
+    .row-actions .btn {
+        width: 100%;
+    }
+
+    .enroll-row {
+        flex-direction: column;
+    }
+
+    .enroll-row .field-control {
+        min-width: 0;
     }
 
     .stat-grid {

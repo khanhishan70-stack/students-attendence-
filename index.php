@@ -8,7 +8,7 @@ require __DIR__ . '/config/db.php';
 
 $projectName    = 'SMART ATTENDANCE AI';
 $projectTagline = 'Dual-Mode Digital Student Attendance Management System';
-$phaseLabel     = 'PHASE 3 — DASHBOARD UI';
+$phaseLabel     = 'PHASE 4 — STUDENT MANAGEMENT';
 $currentYear    = (int) date('Y');
 
 $tables = [
@@ -43,7 +43,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Smart Attendance AI — a dual-mode digital student attendance management system. Phase 2 database foundation.">
     <meta name="theme-color" content="#050b1a">
-    <title><?= e($projectName) ?> | Phase 2 Database Foundation</title>
+    <title><?= e($projectName) ?> | Phase 4 Student Management</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="assets/js/app.js" defer></script>
 </head>
@@ -263,9 +263,10 @@ try {
                     <div class="notice" role="note">
                         <strong>Attendance features are still not available.</strong>
                         <p>
-                            The dashboard reads real records from the database, but login,
-                            student management screens, manual marking, QR scanning, OCR,
-                            AI insights and reports are not part of this phase.
+                            The dashboard reads real records from the database. Student
+                            management, CSV bulk import and OCR import are live, but login,
+                            manual marking, QR scanning, AI insights and reports are not part
+                            of this phase.
                         </p>
                     </div>
                 </div>
@@ -287,21 +288,21 @@ try {
                         </div>
                         <span class="phase-state">Done</span>
                     </li>
-                    <li class="phase-item is-current">
+                    <li class="phase-item is-done">
                         <span class="phase-index">03</span>
                         <div>
                             <h3>Dashboard &amp; navigation</h3>
                             <p>Responsive application shell, statistics and screen placeholders.</p>
                         </div>
-                        <span class="phase-state">Current</span>
+                        <span class="phase-state">Done</span>
                     </li>
-                    <li class="phase-item">
+                    <li class="phase-item is-current">
                         <span class="phase-index">04</span>
                         <div>
-                            <h3>Students, classes &amp; subjects</h3>
-                            <p>Accounts, roles, and academic record management.</p>
+                            <h3>Student management &amp; bulk import</h3>
+                            <p>Add, edit and deactivate students, enrol them into classes, bulk import from CSV, and import a scanned list with real OCR.</p>
                         </div>
-                        <span class="phase-state">Planned</span>
+                        <span class="phase-state">Current</span>
                     </li>
                     <li class="phase-item">
                         <span class="phase-index">05</span>

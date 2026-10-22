@@ -6,8 +6,9 @@ A second-year Diploma Computer Engineering DBMS project that will combine manual
 roll-number attendance and mobile QR-code attendance in one responsive web application.
 
 The project is being built in phases. This repository currently contains **Phase 1 to
-Phase 3**: the environment foundation, the responsive project landing page, the
-complete relational database layer, and a responsive dashboard application shell.
+Phase 4**: the environment foundation, the responsive project landing page, the
+complete relational database layer, a responsive dashboard application shell, and
+student management with CSV bulk import and OCR import from a scanned list.
 Attendance screens, QR scanning, authentication and reports do not exist yet.
 
 ## Technology Stack
@@ -36,13 +37,16 @@ Attendance screens, QR scanning, authentication and reports do not exist yet.
 smart-attendance/
 ├── index.php              project landing page
 ├── dashboard.php          main dashboard screen
-├── students.php           screen shell (Phase 4)
-├── classes.php            screen shell (Phase 4)
-├── subjects.php           screen shell (Phase 4)
+├── students.php           student management (Phase 4)
+├── csv-import.php         bulk student import from CSV (Phase 4)
+├── csv-template.php       sample CSV download (Phase 4)
+├── ocr-import.php         student import from a scanned list, real OCR (Phase 4)
+├── classes.php            screen shell (planned)
+├── subjects.php           screen shell (planned)
 ├── manual-attendance.php  screen shell (Phase 5)
 ├── qr-attendance.php      screen shell (Phase 6)
 ├── reports.php            screen shell (Phase 7)
-├── settings.php           screen shell (Phase 4)
+├── settings.php           screen shell (planned)
 ├── README.md
 ├── .gitignore
 ├── .htaccess
@@ -51,10 +55,16 @@ smart-attendance/
 │   ├── database.php          (local only, never committed)
 │   ├── db.php
 │   ├── helpers.php
+│   ├── ocr.php               OCR engine configuration (non-secret)
+│   ├── ocr.local.php         (local only, never committed)
 │   └── .gitkeep
 ├── includes/
 │   ├── layout.php            shared shell: head, sidebar, top bar, footer
-│   └── data.php              dashboard queries (read only)
+│   ├── data.php              dashboard queries (read only)
+│   ├── security.php          CSRF, flash messages, upload validation
+│   ├── students.php          student CRUD, enrolment and validation
+│   ├── csv_import.php        CSV parse, validate, stage and execute
+│   └── ocr.php               Tesseract adapter and text heuristics
 ├── assets/
 │   ├── css/
 │   │   └── style.css
@@ -68,14 +78,20 @@ smart-attendance/
 │   └── .gitkeep
 └── docs/
     ├── database.md
+    ├── imports.md
     └── .gitkeep
 ```
 
 - `config/database.php` holds the local database credentials and is excluded by
   `.gitignore`. `config/database.example.php` is the tracked template.
 - `config/db.php` is the PDO connection layer used by every page.
+- `config/ocr.php` points at the Tesseract binary and the language models.
+  Machine-specific overrides go in `config/ocr.local.php`, which is excluded by
+  `.gitignore`, or through the `TESSERACT_BINARY` and `TESSDATA_PREFIX`
+  environment variables.
 - `database/schema.sql` creates the structure, `database/seed.sql` loads demo data.
 - `docs/database.md` documents the schema, the integrity rules and useful queries.
+- `docs/imports.md` documents the CSV and OCR import flows.
 
 ## Starting Apache and MySQL
 
@@ -116,13 +132,15 @@ has not been imported yet.
 | --- | --- | --- |
 | Project overview | `/smart-attendance/` | Working |
 | Dashboard | `/smart-attendance/dashboard.php` | Working, read-only data |
-| Students | `/smart-attendance/students.php` | Placeholder for Phase 4 |
-| Classes | `/smart-attendance/classes.php` | Placeholder for Phase 4 |
-| Subjects | `/smart-attendance/subjects.php` | Placeholder for Phase 4 |
+| Students | `/smart-attendance/students.php` | Working — add, edit, enrol, deactivate |
+| CSV Import | `/smart-attendance/csv-import.php` | Working — validated bulk import |
+| OCR Import | `/smart-attendance/ocr-import.php` | Working — real Tesseract OCR |
+| Classes | `/smart-attendance/classes.php` | Placeholder (planned) |
+| Subjects | `/smart-attendance/subjects.php` | Placeholder (planned) |
 | Manual Attendance | `/smart-attendance/manual-attendance.php` | Placeholder for Phase 5 |
 | QR Attendance | `/smart-attendance/qr-attendance.php` | Placeholder for Phase 6 |
 | Reports | `/smart-attendance/reports.php` | Placeholder for Phase 7 |
-| Settings | `/smart-attendance/settings.php` | Placeholder for Phase 4 |
+| Settings | `/smart-attendance/settings.php` | Placeholder (planned) |
 
 ## Database Setup
 
@@ -141,6 +159,35 @@ duplicates a row. The same files can be imported through phpMyAdmin
 
 If `config/database.php` is missing, copy `config/database.example.php` to
 `config/database.php` and adjust the values.
+
+## OCR Engine Setup
+
+The OCR import screen reads a printed student list with **Tesseract**, a real
+open-source OCR engine. It runs locally: no cloud service and no paid API is
+involved. The engine is installed outside the web root so no part of it is
+reachable from a browser.
+
+On this machine the engine was installed with [micromamba](https://mamba.readthedocs.io/)
+into `C:\tesseract`, which needs no administrator rights and writes nothing to
+the registry or the system PATH:
+
+```bash
+micromamba create -y -p C:\tesseract -c conda-forge tesseract
+```
+
+The default configuration in `config/ocr.php` already points at the binary and
+the language models:
+
+```text
+binary   = C:\tesseract\Library\bin\tesseract.exe
+tessdata = C:\tesseract\share\tessdata
+```
+
+On a different machine, either edit `config/ocr.php`, or create a git-ignored
+`config/ocr.local.php` that returns the same keys with your paths, or set the
+`TESSERACT_BINARY` and `TESSDATA_PREFIX` environment variables. The OCR screen
+shows the engine version and its status at the top of the page; if the engine is
+missing the screen explains what to fix and the CSV import still works.
 
 ## Current Implementation Status
 
@@ -187,16 +234,62 @@ If `config/database.php` is missing, copy `config/database.example.php` to
 - Placeholder screens for Students, Classes, Subjects, Manual Attendance,
   QR Attendance, Reports and Settings — each states clearly that it is not built.
 
+### Implemented in Phase 4
+
+- Student management screen (`students.php`): paginated list, search by roll
+  number or name, filter by class and by active/inactive status.
+- Add a student with roll number, name, optional email and a class. Creating a
+  student also enrols them in that class for the class academic year, which is
+  the integrity rule the attendance trigger depends on.
+- Edit a student's roll number, name and email. Enrolments are listed
+  separately and a new enrolment can be added from the same screen.
+- Deactivate and re-activate a student. Deactivation keeps every attendance
+  record; nothing is deleted anywhere in the application.
+- CSRF protection on every state-changing form. A missing or wrong token
+  returns HTTP 400 and nothing is written.
+- Post/Redirect/Get on every POST so a reload never re-submits a form, plus
+  flash messages for success, error and info feedback.
+- Server-side validation with field-level error messages for roll number format,
+  name length, email format and class existence.
+- Friendly mapping of the database trigger messages to readable text, so a roll
+  number clash or a failed enrolment explains itself without a raw SQL error.
+- CSV bulk import (`csv-import.php`): upload, parse, validate every row against
+  the database, preview with a per-row status, then confirm. The batch runs in
+  one transaction with a savepoint per row, so one bad row never rolls back the
+  rows before it and a mid-way failure never leaves a half import.
+- Duplicate handling: an existing student with the same roll number and name is
+  reused (enrolment added, profile never silently overwritten); a roll number
+  already taken by another student in the same class is reported as a conflict.
+- A downloadable sample CSV template (`csv-template.php`) with the exact headers
+  the importer expects.
+- OCR import (`ocr-import.php`): upload a photo or scan of a printed list, run
+  the local Tesseract engine, review every recognised row in an editable table,
+  then send the corrected rows through the same validated import path as a CSV.
+  The recognised text is shown in a collapsible block so the teacher can check
+  the engine's reading. Rows the parser is unsure about are flagged for review.
+- The OCR adapter uses a hard process timeout so a hung engine is killed instead
+  of blocking the request, and the uploaded image is deleted from the temporary
+  folder as soon as the text has been read.
+- Upload validation on both import paths: allowed extensions, MIME type detected
+  from the file content, size limit, and a random file name so the original
+  name never reaches the disk.
+- CSRF and flash message helpers in `includes/security.php`, reused by every
+  screen.
+- Icons, form, filter, flash, pagination and upload styles added to the shared
+  stylesheet; small JavaScript for confirm dialogs, class-to-year autofill and
+  file input labels.
+
 ### Not Implemented
 
-- Login screens and session handling.
-- Creating, editing or deleting records of any kind.
+- Login screens and session handling (the application runs as a guest for now).
+- Classes and subjects management screens (the tables exist and are used by the
+  student screens, but there is no create/edit UI yet).
 - Manual attendance marking.
 - QR code generation or scanning.
-- OCR or other AI features.
 - Attendance report screens and exports.
 
-The dashboard only reads verified records. Nothing on it writes to the database.
+The dashboard only reads verified records. Student management, CSV import and
+OCR import write real rows, all through prepared statements and transactions.
 
 ## Development Phases
 
@@ -207,20 +300,24 @@ The dashboard only reads verified records. Nothing on it writes to the database.
 3. **Phase 3 — Dashboard UI** (done): responsive application shell, navigation,
    live statistics, session list, attendance chart, low attendance list and
    screen placeholders.
-4. **Phase 4 — Accounts and academic records**: sign-in, roles, students,
-   classes and subjects.
+4. **Phase 4 — Student management and bulk import** (done): student CRUD with
+   enrolment, deactivation without deleting history, CSRF-protected forms,
+   validated CSV bulk import in one transaction, and OCR import from a scanned
+   list using the local Tesseract engine.
 5. **Phase 5 — Manual attendance**: roll-number-based marking and session records.
 6. **Phase 6 — QR attendance**: session QR codes and mobile check-in.
 7. **Phase 7 — Reports and insights**: attendance reports, summaries, and
    AI-assisted analysis.
-
-Phase 4 has not started.
 
 ## Configuration and Secrets
 
 - Never commit database passwords, API keys, or private credentials.
 - Keep local credentials in `config/database.php`, which is excluded by `.gitignore`.
 - Passwords in the database are stored as bcrypt hashes only.
+- OCR engine paths are machine specific. They live in `config/ocr.php` with
+  overridable defaults; local overrides go in `config/ocr.local.php`, which is
+  excluded by `.gitignore`, or in the `TESSERACT_BINARY` / `TESSDATA_PREFIX`
+  environment variables. No secret is stored in any of these files.
 - The `.gitignore` also excludes environment files, logs, temporary files, editor
   folders, and local database dumps.
 
@@ -243,8 +340,13 @@ Phase 4 has not started.
 
 ## Notes
 
-- Phase 1 creates the foundation, Phase 2 adds the data layer and Phase 3 adds
-  the responsive dashboard interface.
-- No external paid services or API keys are used.
-- The database contains demo records only, used for testing the schema.
-- The dashboard is read-only in this phase: it reports what is really stored.
+- Phases 1 to 4 are complete: the foundation, the data layer, the dashboard
+  interface, and student management with CSV and OCR bulk import.
+- No external paid services or API keys are used. The OCR engine is the free,
+  open-source Tesseract, running locally.
+- The database contains demo records only, used for testing the schema and the
+  import flows.
+- The dashboard is read-only. Student management, CSV import and OCR import
+  write real rows through prepared statements and transactions.
+- Every import is validated before it runs and is committed in a single
+  transaction, so a partial import never happens.
