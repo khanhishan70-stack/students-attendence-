@@ -139,6 +139,25 @@ Open `http://localhost/smart-attendance/manual-attendance.php`. You are sent to
 the sign-in page, and after signing in you are returned to the attendance
 screen. Sign out from the user chip in the top navigation.
 
+## Student Accounts (Phase 6)
+
+QR attendance requires students to sign in with their own accounts. Six student
+accounts are seeded (one per student):
+
+| Student | Email | Password |
+| --- | --- | --- |
+| Aarav Sharma (01) | `aarav.sharma@example.com` | `Student@123` |
+| Diya Patel (02) | `diya.patel@example.com` | `Student@123` |
+| Rohan Mehta (03) | `rohan.mehta@example.com` | `Student@123` |
+| Ishita Verma (04) | `ishita.verma@example.com` | `Student@123` |
+| Kabir Singh (CS01) | `kabir.singh@example.com` | `Student@123` |
+| Ananya Gupta (CS02) | `ananya.gupta@example.com` | `Student@123` |
+
+These accounts have role `student` and are linked to their student records via
+`users.student_id`. A student scanning a QR code is redirected to sign in, and
+after signing in their identity is resolved **server-side** from the session —
+never from data the browser sends.
+
 ## Application Screens
 
 | Screen | URL | Status |
@@ -153,7 +172,7 @@ screen. Sign out from the user chip in the top navigation.
 | Classes | `/smart-attendance/classes.php` | Placeholder (planned) |
 | Subjects | `/smart-attendance/subjects.php` | Placeholder (planned) |
 | Manual Attendance | `/smart-attendance/manual-attendance.php` | Working — sign-in required, session setup, one-by-one marking, finish summary |
-| QR Attendance | `/smart-attendance/qr-attendance.php` | Placeholder for Phase 6 |
+| QR Attendance | `/smart-attendance/qr-attendance.php` | Working — dynamic QR, student check-in, live teacher view |
 | Reports | `/smart-attendance/reports.php` | Placeholder for Phase 7 |
 | Settings | `/smart-attendance/settings.php` | Placeholder (planned) |
 
@@ -337,11 +356,38 @@ missing the screen explains what to fix and the CSV import still works.
 - The dashboard's pending count now includes `review` rows so a student flagged
   for review is never hidden from the totals.
 
+### Implemented in Phase 6
+
+- **Dynamic QR tokens**: cryptographically secure 256-bit random tokens,
+  stored only as SHA-256 hashes in `qr_tokens`. Raw token never written to
+  database. Each token has explicit expiry (default 30 s, configurable 10–300 s).
+- **Token auto-refresh**: teacher UI rotates QR every 30 seconds. Refresh issues
+  a new token and revokes the previous one immediately — old QR stops working.
+- **Student authentication**: dedicated student accounts (role=`student`,
+  linked via `users.student_id`). A QR scan opens `qr-checkin.php`; if not
+  signed in, redirects to `login.php` with `next=` preserving the check-in URL.
+  After login, identity is resolved **server-side from the session** — never
+  from browser-supplied data.
+- **Secure check-in flow**: validates token (hash match, not expired, not
+  revoked), session is open and in QR mode, student is enrolled in the class,
+  then records attendance with `source='qr'` and `marked_by=student_user_id`.
+- **Duplicate prevention**: database unique key `uq_attendance_session_student`
+  makes every check-in an upsert. Re-scanning shows "already marked" — no
+  duplicate rows ever created. Concurrent submissions handled by InnoDB row
+  locking.
+- **Rate limiting**: per-student fixed-window (1 min / 10 attempts) in
+  `qr_rate_limits` so the endpoint cannot be hammered.
+- **Session closure revokes tokens**: closing a session marks it `closed` and
+  sets `revoked_at` on all its tokens — no further check-ins possible.
+- **Live teacher view**: polling endpoint (`qr-live.php`) updates the check-in
+  list every 5 seconds with status badges, timestamps, and source (QR/Manual).
+- **QR library**: `bacon/bacon-qr-code` (pure PHP, SVG output, no GD required),
+  installed via Composer.
+
 ### Not Implemented
 
 - Classes and subjects management screens (the tables exist and are used by the
   student and attendance screens, but there is no create/edit UI yet).
-- QR code generation or scanning.
 - Attendance report screens and exports.
 - Re-opening or correcting a session after it has been finished. Once a session
   is closed it is locked for good; a correction can only be made while the
@@ -370,7 +416,10 @@ and transactions.
    one-open-session-per-class guard, one-by-one marking in roll-number order with
    a configurable countdown, safe corrections through the database unique key,
    and a locked finish summary that never converts not-marked students to absent.
-6. **Phase 6 — QR attendance**: session QR codes and mobile check-in.
+6. **Phase 6 — QR attendance** (done): dynamic short-lived QR codes with
+   cryptographically secure tokens, student authentication via dedicated accounts,
+   server-side identity resolution, duplicate prevention via DB unique key,
+   live teacher polling view, token auto-refresh, and rate limiting.
 7. **Phase 7 — Reports and insights**: attendance reports, summaries, and
    AI-assisted analysis.
 

@@ -15,8 +15,8 @@ require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/auth.php';
 
 const APP_NAME    = 'SMART ATTENDANCE AI';
-const APP_PHASE   = 'PHASE 5 — MANUAL ATTENDANCE';
-const APP_VERSION = '0.5.0';
+const APP_PHASE   = 'PHASE 6 — QR ATTENDANCE';
+const APP_VERSION = '0.6.0';
 
 /**
  * Navigation model. `phase` marks screens that are not implemented yet.
@@ -31,7 +31,7 @@ function app_nav_items(): array
         ['key' => 'classes',    'label' => 'Classes',           'href' => 'classes.php',           'icon' => 'school', 'phase' => 'Planned'],
         ['key' => 'subjects',   'label' => 'Subjects',          'href' => 'subjects.php',          'icon' => 'book',   'phase' => 'Planned'],
         ['key' => 'manual',     'label' => 'Manual Attendance', 'href' => 'manual-attendance.php', 'icon' => 'check',  'phase' => null],
-        ['key' => 'qr',         'label' => 'QR Attendance',     'href' => 'qr-attendance.php',     'icon' => 'qr',     'phase' => 'Phase 6'],
+        ['key' => 'qr',         'label' => 'QR Attendance',     'href' => 'qr-attendance.php',     'icon' => 'qr',     'phase' => null],
         ['key' => 'reports',    'label' => 'Reports',           'href' => 'reports.php',          'icon' => 'chart',  'phase' => 'Phase 7'],
         ['key' => 'settings',   'label' => 'Settings',          'href' => 'settings.php',          'icon' => 'gear',   'phase' => 'Planned'],
     ];

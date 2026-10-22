@@ -3078,3 +3078,328 @@ textarea.field-control {
         font-size: 1.9rem;
     }
 }
+
+/* =============================================================================
+   PHASE 6 — QR ATTENDANCE
+   =========================================================================== */
+
+/* --- QR Session Setup ------------------------------------------------------- */
+
+.qr-live-card {
+    text-align: center;
+}
+
+.qr-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.qr-code-wrap {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-lg);
+    display: inline-block;
+}
+
+.qr-svg {
+    display: block;
+    width: 220px;
+    height: 220px;
+}
+
+.qr-meta {
+    max-width: 320px;
+}
+
+.qr-countdown {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 0.75rem;
+}
+
+.countdown-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-muted);
+}
+
+.countdown-value {
+    min-width: 2.5ch;
+    text-align: right;
+}
+
+.countdown-unit {
+    font-size: 0.9rem;
+    color: var(--color-muted);
+}
+
+.qr-instruction {
+    font-size: 0.85rem;
+    color: var(--color-muted);
+    line-height: 1.5;
+}
+
+.qr-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.session-stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.session-stats .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 70px;
+}
+
+.session-stats .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    line-height: 1;
+}
+
+.session-stats .stat-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-muted);
+}
+
+.qr-actions {
+    display: inline-flex;
+}
+
+.qr-actions .btn {
+    min-width: 160px;
+}
+
+/* --- Live Attendance Table -------------------------------------------------- */
+
+#live-table-wrap {
+    overflow-x: auto;
+}
+
+#live-tbody td {
+    vertical-align: middle;
+}
+
+#live-tbody tr.is-present {
+    background: rgba(16, 185, 129, 0.04);
+}
+
+#live-tbody tr.is-present td {
+    border-color: rgba(16, 185, 129, 0.15);
+}
+
+.empty-row {
+    text-align: center;
+    color: var(--color-muted);
+    padding: 3rem 1rem !important;
+}
+
+/* --- QR Summary (Closed Session) ------------------------------------------- */
+
+.qr-summary-card {
+    text-align: center;
+}
+
+.summary-stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.stat-large {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 110px;
+    padding: 1.5rem;
+    background: var(--color-surface);
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+}
+
+.stat-large .stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    line-height: 1;
+}
+
+.stat-large .stat-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-muted);
+}
+
+/* --- Student Check-in Page -------------------------------------------------- */
+
+.checkin-result {
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+}
+
+.checkin-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+}
+
+.checkin-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+}
+
+.checkin-icon .app-icon {
+    width: 40px;
+    height: 40px;
+}
+
+.checkin-result .flash-success + .checkin-card .checkin-icon,
+.checkin-result .checkin-message.success ~ .checkin-icon {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--green);
+}
+
+.checkin-result .flash-error + .checkin-card .checkin-icon,
+.checkin-result .checkin-message.error ~ .checkin-icon {
+    background: rgba(248, 113, 113, 0.15);
+    color: #dc2626;
+}
+
+.checkin-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--color-text);
+}
+
+.checkin-message {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--color-muted);
+    margin-bottom: 1.5rem;
+}
+
+.checkin-details {
+    background: var(--color-bg);
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1.5rem 0;
+    text-align: left;
+}
+
+.checkin-details dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 1rem;
+    font-size: 0.85rem;
+}
+
+.checkin-details dt {
+    font-weight: 600;
+    color: var(--color-muted);
+}
+
+.checkin-details dd {
+    margin: 0;
+    color: var(--color-text);
+}
+
+.checkin-actions {
+    margin-top: 1.5rem;
+}
+
+.checkin-hint {
+    font-size: 0.9rem;
+    color: var(--color-muted);
+    margin-bottom: 1rem;
+}
+
+/* --- Phase 6 responsive ----------------------------------------------------- */
+
+@media (max-width: 600px) {
+    .qr-code-wrap {
+        padding: 1rem;
+    }
+
+    .qr-svg {
+        width: 180px;
+        height: 180px;
+    }
+
+    .qr-countdown {
+        font-size: 1.25rem;
+    }
+
+    .session-stats {
+        gap: 0.75rem;
+    }
+
+    .session-stats .stat {
+        min-width: 60px;
+    }
+
+    .session-stats .stat-value {
+        font-size: 1.4rem;
+    }
+
+    .qr-actions .btn {
+        min-width: 140px;
+        padding: 0.7rem 1rem;
+    }
+
+    .stat-large {
+        min-width: 90px;
+        padding: 1.25rem 1rem;
+    }
+
+    .stat-large .stat-value {
+        font-size: 2rem;
+    }
+
+    .checkin-card {
+        padding: 2rem 1.5rem;
+    }
+}

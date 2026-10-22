@@ -22,20 +22,26 @@ CREATE DATABASE IF NOT EXISTS `smart_attendance`
 USE `smart_attendance`;
 
 -- ----------------------------------------------------------------------------
--- A. users - application users (admin / teacher)
+-- A. users - application users (admin / teacher / student)
+--    Phase 6 adds 'student' role and student_id link for QR identity.
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `users` (
     `id`            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
     `full_name`     VARCHAR(120)    NOT NULL,
     `email`         VARCHAR(190)    NOT NULL,
     `password_hash` VARCHAR(255)    NOT NULL,
-    `role`          ENUM('admin','teacher') NOT NULL DEFAULT 'teacher',
+    `role`          ENUM('admin','teacher','student') NOT NULL DEFAULT 'teacher',
+    `student_id`    INT UNSIGNED    NULL DEFAULT NULL,
     `is_active`     TINYINT(1)      NOT NULL DEFAULT 1,
     `created_at`    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_users_email` (`email`),
-    KEY `idx_users_role_active` (`role`, `is_active`)
+    UNIQUE KEY `uq_users_student_id` (`student_id`),
+    KEY `idx_users_role_active` (`role`, `is_active`),
+    CONSTRAINT `fk_users_student`
+        FOREIGN KEY (`student_id`) REFERENCES `students` (`id`)
+        ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
@@ -151,6 +157,7 @@ CREATE TABLE IF NOT EXISTS `attendance_sessions` (
 -- G. attendance - one row per student per session
 --     A correction is an UPDATE of the same row, never a second row.
 --     'review' was added in Phase 5 so the REVIEW button stores a real status.
+--     'source' was added in Phase 6 to record how attendance was captured.
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `attendance` (
     `id`          INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -159,6 +166,7 @@ CREATE TABLE IF NOT EXISTS `attendance` (
     `status`      ENUM('present','absent','review','not_marked') NOT NULL DEFAULT 'not_marked',
     `marked_by`   INT UNSIGNED NULL DEFAULT NULL,
     `marked_at`   DATETIME     NULL DEFAULT NULL,
+    `source`      ENUM('manual','qr') NOT NULL DEFAULT 'manual',
     `updated_at`  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_attendance_session_student` (`session_id`, `student_id`),
@@ -166,6 +174,7 @@ CREATE TABLE IF NOT EXISTS `attendance` (
     KEY `idx_attendance_status` (`status`),
     KEY `idx_attendance_session_status` (`session_id`, `status`),
     KEY `idx_attendance_marked_at` (`marked_at`),
+    KEY `idx_attendance_source` (`source`),
     CONSTRAINT `fk_attendance_session`
         FOREIGN KEY (`session_id`) REFERENCES `attendance_sessions` (`id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
@@ -175,6 +184,42 @@ CREATE TABLE IF NOT EXISTS `attendance` (
     CONSTRAINT `fk_attendance_marked_by`
         FOREIGN KEY (`marked_by`) REFERENCES `users` (`id`)
         ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
+-- H. qr_tokens - short-lived, hashed bearer tokens for QR check-in
+--     Only the SHA-256 hash of a token is stored. Raw token never hits DB.
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `qr_tokens` (
+    `id`          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `session_id`  INT UNSIGNED NOT NULL,
+    `token_hash`  CHAR(64)     NOT NULL,
+    `expires_at`  DATETIME     NOT NULL,
+    `created_by`  INT UNSIGNED NULL DEFAULT NULL,
+    `revoked_at`  DATETIME     NULL DEFAULT NULL,
+    `created_at`  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_qr_token_hash` (`token_hash`),
+    KEY `idx_qr_session_active` (`session_id`, `revoked_at`, `expires_at`),
+    CONSTRAINT `fk_qr_token_session`
+        FOREIGN KEY (`session_id`) REFERENCES `attendance_sessions` (`id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `fk_qr_token_creator`
+        FOREIGN KEY (`created_by`) REFERENCES `users` (`id`)
+        ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
+-- I. qr_rate_limits - fixed-window rate limiting for check-in endpoint
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `qr_rate_limits` (
+    `id`           INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `bucket`       VARCHAR(64)  NOT NULL,
+    `action`       VARCHAR(32)  NOT NULL,
+    `window_start` INT UNSIGNED NOT NULL,
+    `attempts`     INT UNSIGNED NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_rate_bucket` (`bucket`, `action`, `window_start`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
