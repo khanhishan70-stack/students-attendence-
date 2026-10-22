@@ -126,18 +126,33 @@ table. The dashboard shows the same information as a proper application shell.
 If the status reads **Unavailable**, the database is not running or the schema
 has not been imported yet.
 
+## Demo Accounts
+
+Manual attendance requires a real sign-in. Two accounts are seeded:
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | `admin@smartattendance.local` | `Admin@123` |
+| Teacher | `priya.sharma@smartattendance.local` | `Teacher@123` |
+
+Open `http://localhost/smart-attendance/manual-attendance.php`. You are sent to
+the sign-in page, and after signing in you are returned to the attendance
+screen. Sign out from the user chip in the top navigation.
+
 ## Application Screens
 
 | Screen | URL | Status |
 | --- | --- | --- |
 | Project overview | `/smart-attendance/` | Working |
+| Sign in | `/smart-attendance/login.php` | Working — teacher/admin sign-in (Phase 5) |
+| Sign out | `/smart-attendance/logout.php` | Working — POST + CSRF, ends the session |
 | Dashboard | `/smart-attendance/dashboard.php` | Working, read-only data |
 | Students | `/smart-attendance/students.php` | Working — add, edit, enrol, deactivate |
 | CSV Import | `/smart-attendance/csv-import.php` | Working — validated bulk import |
 | OCR Import | `/smart-attendance/ocr-import.php` | Working — real Tesseract OCR |
 | Classes | `/smart-attendance/classes.php` | Placeholder (planned) |
 | Subjects | `/smart-attendance/subjects.php` | Placeholder (planned) |
-| Manual Attendance | `/smart-attendance/manual-attendance.php` | Placeholder for Phase 5 |
+| Manual Attendance | `/smart-attendance/manual-attendance.php` | Working — sign-in required, session setup, one-by-one marking, finish summary |
 | QR Attendance | `/smart-attendance/qr-attendance.php` | Placeholder for Phase 6 |
 | Reports | `/smart-attendance/reports.php` | Placeholder for Phase 7 |
 | Settings | `/smart-attendance/settings.php` | Placeholder (planned) |
@@ -279,17 +294,64 @@ missing the screen explains what to fix and the CSV import still works.
   stylesheet; small JavaScript for confirm dialogs, class-to-year autofill and
   file input labels.
 
+### Implemented in Phase 5
+
+- Real sign-in (`login.php`, `logout.php`, `includes/auth.php`): password
+  verification with `password_verify`, a generic "Email or password is
+  incorrect" message for both a wrong password and an unknown email, and
+  timing-equalised hashing so a bad email does not respond faster than a bad
+  password. A password hash is re-hashed automatically when the default cost
+  changes. Sign-out clears the session cookie and destroys the session.
+- `require_login()` gates the attendance screen. An anonymous visitor is sent to
+  `login.php` with a `next=` parameter, and after a successful sign-in they are
+  returned to the page they asked for. The `next` value is only honoured when it
+  is a local path, so it can never redirect off-site.
+- Session setup screen: pick class, subject, date, seconds per student (5–600,
+  default 30) and an optional label. The subject list carries a class id per
+  option so the browser filters it live, and the server re-checks that the
+  chosen subject really belongs to the chosen class before anything is written.
+- One open session per class, subject and date. The database deliberately allows
+  several lectures of the same subject on the same day, so the application
+  blocks a second *open* session for the same combination and lets the teacher
+  resume the one that is already running.
+- One-by-one marking in roll-number order (numeric-aware, so `2` sorts before
+  `10`). Present, absent, review and not-marked are the only accepted statuses;
+  anything else is rejected. A student who is not enrolled in the session's class
+  cannot be marked.
+- The one-row-per-student rule is enforced by the database unique key, so
+  re-marking a student updates their row instead of adding a second one. A
+  correction is therefore always safe. Marking runs in a transaction and uses
+  `INSERT ... ON DUPLICATE KEY UPDATE`.
+- Finishing a session locks it. A closed session rejects any further mark, and
+  students who were never marked stay `not_marked` — they are never silently
+  converted to absent. The summary screen shows present, absent, review and
+  not-marked counts plus the full register.
+- Countdown timer, roster strip, keyboard shortcuts (P/A/R/S and the arrow
+  keys) and an optional spoken roll call in `assets/js/attendance.js`. The timer
+  is a guide only: it never writes to the database on its own, so an expired
+  timer cannot create a wrong or duplicate record. The voice toggle is off by
+  default and remembers the choice in `localStorage`.
+- CSRF protection and Post/Redirect/Get on every state-changing POST (start,
+  mark, finish, sign-in, sign-out). A missing or wrong token returns HTTP 400
+  and nothing is written.
+- The dashboard's pending count now includes `review` rows so a student flagged
+  for review is never hidden from the totals.
+
 ### Not Implemented
 
-- Login screens and session handling (the application runs as a guest for now).
 - Classes and subjects management screens (the tables exist and are used by the
-  student screens, but there is no create/edit UI yet).
-- Manual attendance marking.
+  student and attendance screens, but there is no create/edit UI yet).
 - QR code generation or scanning.
 - Attendance report screens and exports.
+- Re-opening or correcting a session after it has been finished. Once a session
+  is closed it is locked for good; a correction can only be made while the
+  session is still open.
+- Student photographs (the `students` table has no photo column, so the marking
+  screen shows an initials avatar instead of a face).
 
-The dashboard only reads verified records. Student management, CSV import and
-OCR import write real rows, all through prepared statements and transactions.
+The dashboard reads verified records. Student management, CSV import, OCR
+import and manual attendance all write real rows, through prepared statements
+and transactions.
 
 ## Development Phases
 
@@ -304,7 +366,10 @@ OCR import write real rows, all through prepared statements and transactions.
    enrolment, deactivation without deleting history, CSRF-protected forms,
    validated CSV bulk import in one transaction, and OCR import from a scanned
    list using the local Tesseract engine.
-5. **Phase 5 — Manual attendance**: roll-number-based marking and session records.
+5. **Phase 5 — Manual attendance** (done): real sign-in, session setup with a
+   one-open-session-per-class guard, one-by-one marking in roll-number order with
+   a configurable countdown, safe corrections through the database unique key,
+   and a locked finish summary that never converts not-marked students to absent.
 6. **Phase 6 — QR attendance**: session QR codes and mobile check-in.
 7. **Phase 7 — Reports and insights**: attendance reports, summaries, and
    AI-assisted analysis.

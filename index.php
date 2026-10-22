@@ -8,7 +8,7 @@ require __DIR__ . '/config/db.php';
 
 $projectName    = 'SMART ATTENDANCE AI';
 $projectTagline = 'Dual-Mode Digital Student Attendance Management System';
-$phaseLabel     = 'PHASE 4 — STUDENT MANAGEMENT';
+$phaseLabel     = 'PHASE 5 — MANUAL ATTENDANCE';
 $currentYear    = (int) date('Y');
 
 $tables = [
@@ -41,9 +41,9 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Smart Attendance AI — a dual-mode digital student attendance management system. Phase 2 database foundation.">
+    <meta name="description" content="Smart Attendance AI — a dual-mode digital student attendance management system. Phase 5 manual attendance.">
     <meta name="theme-color" content="#050b1a">
-    <title><?= e($projectName) ?> | Phase 4 Student Management</title>
+    <title><?= e($projectName) ?> | Phase 5 Manual Attendance</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="assets/js/app.js" defer></script>
 </head>
@@ -93,16 +93,16 @@ try {
                     </div>
 
                     <p class="hero-note">
-                        The relational foundation is live and the dashboard interface is
-                        built. Attendance tracking, QR scanning, login and reports are
-                        still not implemented.
+                        The relational foundation, the dashboard, student management
+                        with CSV and OCR import, and secure manual attendance are
+                        live. QR scanning, reports and AI insights are still to come.
                     </p>
                 </div>
 
                 <aside class="system-card" aria-labelledby="snapshot-title">
                     <div class="system-card-head">
                         <h2 id="snapshot-title">Project snapshot</h2>
-                        <span class="chip">Phase 3 of 7</span>
+                        <span class="chip">Phase 5 of 7</span>
                     </div>
 
                     <ul class="snapshot-list">
@@ -130,7 +130,7 @@ try {
                         </li>
                         <li>
                             <span class="snapshot-label">Attendance logic</span>
-                            <span class="snapshot-value muted">Not implemented</span>
+                            <span class="snapshot-value">Manual marking live</span>
                         </li>
                     </ul>
 
@@ -162,18 +162,18 @@ try {
                                 <path d="m9 15 3-3L22 2"></path>
                             </svg>
                         </div>
-                        <span class="mode-tag">Planned mode</span>
+                        <span class="mode-tag">Live mode</span>
                         <h3>Manual Attendance</h3>
                         <p>
-                            Roll-number-based attendance for the classroom. A teacher will enter
-                            or tick roll numbers for the active class session.
+                            Roll-number-based attendance for the classroom. A teacher signs
+                            in, starts a session, then marks each student in turn.
                         </p>
                         <ul class="mode-points">
-                            <li>Roll-number entry per class</li>
-                            <li>Present and absent review</li>
-                            <li>Simple, fast classroom workflow</li>
+                            <li>One student at a time in roll order</li>
+                            <li>Present, absent, review and not-marked</li>
+                            <li>Configurable per-student countdown</li>
                         </ul>
-                        <p class="mode-status">Schema ready · screens not implemented</p>
+                        <p class="mode-status">Live in Phase 5 · secure sign-in required</p>
                     </article>
 
                     <article class="mode-card">
@@ -242,7 +242,7 @@ try {
                         <li>A student can only receive attendance in a class they are enrolled in for that academic year (trigger).</li>
                         <li>Roll numbers are unique inside a class and academic year, but may repeat across classes (trigger).</li>
                         <li>One attendance row per student per session, so a correction updates the row instead of adding another.</li>
-                        <li>Several lectures of the same subject on the same date are allowed.</li>
+                        <li>Several lectures of the same subject on the same date are allowed; the application blocks a second <em>open</em> session for the same class, subject and date.</li>
                         <li>Passwords are stored as bcrypt hashes and role, mode and status columns only accept their allowed values.</li>
                     </ul>
                 </div>
@@ -253,20 +253,20 @@ try {
             <div class="container status-grid">
                 <div class="status-copy">
                     <p class="section-kicker">Build progress</p>
-                    <h2 id="status-title">Phase 3 builds the dashboard interface</h2>
+                    <h2 id="status-title">Phase 5 turns marking into a real, signed-in workflow</h2>
                     <p class="section-text">
-                        The schema, the connection layer, the seeded demo data and the
-                        responsive dashboard shell are in place. The screens that write
-                        attendance arrive in the next phases.
+                        The schema, the connection layer, the seeded demo data, the
+                        dashboard shell, student management and bulk import are in
+                        place. Manual attendance now writes real records against a
+                        teacher account.
                     </p>
 
                     <div class="notice" role="note">
-                        <strong>Attendance features are still not available.</strong>
+                        <strong>Manual attendance is live behind sign-in.</strong>
                         <p>
-                            The dashboard reads real records from the database. Student
-                            management, CSV bulk import and OCR import are live, but login,
-                            manual marking, QR scanning, AI insights and reports are not part
-                            of this phase.
+                            Sign in, start a session for a class and subject, then mark
+                            the register one roll number at a time. QR scanning, AI
+                            insights and reports are still to come in later phases.
                         </p>
                     </div>
                 </div>
@@ -296,21 +296,21 @@ try {
                         </div>
                         <span class="phase-state">Done</span>
                     </li>
-                    <li class="phase-item is-current">
+                    <li class="phase-item is-done">
                         <span class="phase-index">04</span>
                         <div>
                             <h3>Student management &amp; bulk import</h3>
                             <p>Add, edit and deactivate students, enrol them into classes, bulk import from CSV, and import a scanned list with real OCR.</p>
                         </div>
-                        <span class="phase-state">Current</span>
+                        <span class="phase-state">Done</span>
                     </li>
-                    <li class="phase-item">
+                    <li class="phase-item is-current">
                         <span class="phase-index">05</span>
                         <div>
                             <h3>Manual attendance</h3>
-                            <p>Roll-number-based marking and session records.</p>
+                            <p>Secure sign-in, session setup, one-by-one marking in roll-number order with a configurable timer, and a locked final summary.</p>
                         </div>
-                        <span class="phase-state">Planned</span>
+                        <span class="phase-state">Current</span>
                     </li>
                     <li class="phase-item">
                         <span class="phase-index">06</span>

@@ -12,10 +12,11 @@ declare(strict_types=1);
 require_once __DIR__ . '/../config/helpers.php';
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/security.php';
+require_once __DIR__ . '/auth.php';
 
 const APP_NAME    = 'SMART ATTENDANCE AI';
-const APP_PHASE   = 'PHASE 4 — STUDENT MANAGEMENT';
-const APP_VERSION = '0.4.0';
+const APP_PHASE   = 'PHASE 5 — MANUAL ATTENDANCE';
+const APP_VERSION = '0.5.0';
 
 /**
  * Navigation model. `phase` marks screens that are not implemented yet.
@@ -29,7 +30,7 @@ function app_nav_items(): array
         ['key' => 'ocr',        'label' => 'OCR Import',        'href' => 'ocr-import.php',        'icon' => 'scan',   'phase' => null],
         ['key' => 'classes',    'label' => 'Classes',           'href' => 'classes.php',           'icon' => 'school', 'phase' => 'Planned'],
         ['key' => 'subjects',   'label' => 'Subjects',          'href' => 'subjects.php',          'icon' => 'book',   'phase' => 'Planned'],
-        ['key' => 'manual',     'label' => 'Manual Attendance', 'href' => 'manual-attendance.php', 'icon' => 'check',  'phase' => 'Phase 5'],
+        ['key' => 'manual',     'label' => 'Manual Attendance', 'href' => 'manual-attendance.php', 'icon' => 'check',  'phase' => null],
         ['key' => 'qr',         'label' => 'QR Attendance',     'href' => 'qr-attendance.php',     'icon' => 'qr',     'phase' => 'Phase 6'],
         ['key' => 'reports',    'label' => 'Reports',           'href' => 'reports.php',          'icon' => 'chart',  'phase' => 'Phase 7'],
         ['key' => 'settings',   'label' => 'Settings',          'href' => 'settings.php',          'icon' => 'gear',   'phase' => 'Planned'],
@@ -56,6 +57,14 @@ function app_icon(string $name, string $class = 'app-icon'): string
         'pen'    => '<path d="M16.5 4.5 19.5 7.5 8 19H5v-3z"/><path d="m14.5 6.5 3 3"/>',
         'plus'   => '<path d="M12 5v14M5 12h14"/>',
         'trash'  => '<path d="M4 7h16"/><path d="M9.5 7V5.2A1.2 1.2 0 0 1 10.7 4h2.6a1.2 1.2 0 0 1 1.2 1.2V7"/><path d="M6.5 7l.8 12.1A1.5 1.5 0 0 0 8.8 20.5h6.4a1.5 1.5 0 0 0 1.5-1.4L17.5 7"/>',
+        'clock'  => '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 1.8"/>',
+        'pause'  => '<path d="M9.5 5v14M14.5 5v14"/>',
+        'mic'    => '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3"/>',
+        'micoff' => '<path d="M4 4l16 16"/><path d="M9 5.2A3 3 0 0 1 15 6v4.2"/><path d="M9 9.9V12a3 3 0 0 0 4.6 2.5"/><path d="M5.5 11.5a6.5 6.5 0 0 0 9.9 5.6"/><path d="M18.5 11.5c0 .6-.1 1.2-.2 1.7"/><path d="M12 18v3"/>',
+        'flag'   => '<path d="M5 21V4"/><path d="M5 5h11l-2 3.5L16 12H5"/>',
+        'skip'   => '<path d="M5 5l9 7-9 7z"/><path d="M18 5v14"/>',
+        'arrowr' => '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+        'user'   => '<circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>',
     ];
 
     $body = $paths[$name] ?? $paths['grid'];
@@ -67,8 +76,11 @@ function app_icon(string $name, string $class = 'app-icon'): string
 
 /**
  * Opens the document, the sidebar and the top bar.
+ *
+ * @param array $extraScripts Extra deferred script paths for this screen only,
+ *                            e.g. ['assets/js/attendance.js'].
  */
-function render_page_start(string $navKey, string $pageTitle): void
+function render_page_start(string $navKey, string $pageTitle, array $extraScripts = []): void
 {
     $navItems = app_nav_items();
     ?>
@@ -82,6 +94,9 @@ function render_page_start(string $navKey, string $pageTitle): void
     <title><?= e($pageTitle) ?> | <?= e(APP_NAME) ?></title>
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="assets/js/app.js" defer></script>
+    <?php foreach ($extraScripts as $script): ?>
+        <script src="<?= e((string) $script) ?>" defer></script>
+    <?php endforeach; ?>
 </head>
 <body class="app-body">
     <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -150,13 +165,29 @@ function render_page_start(string $navKey, string $pageTitle): void
                     <span class="topbar-date-short"><?= e(date('j M Y')) ?></span>
                 </p>
 
-                <div class="user-chip">
-                    <span class="user-avatar" aria-hidden="true">G</span>
-                    <span class="user-meta">
-                        <strong>Guest access</strong>
-                        <span>Sign-in not implemented yet</span>
-                    </span>
-                </div>
+                <?php $authUser = auth_user(); ?>
+                <?php if ($authUser !== null): ?>
+                    <div class="user-chip">
+                        <span class="user-avatar" aria-hidden="true"><?= e(strtoupper(mb_substr((string) $authUser['name'], 0, 1))) ?></span>
+                        <span class="user-meta">
+                            <strong><?= e((string) $authUser['name']) ?></strong>
+                            <span><?= e(ucfirst((string) $authUser['role'])) ?></span>
+                        </span>
+                        <form method="post" action="logout.php" class="user-signout">
+                            <?= csrf_field() ?>
+                            <button class="btn btn-ghost btn-sm" type="submit">Sign out</button>
+                        </form>
+                    </div>
+                <?php else: ?>
+                    <div class="user-chip">
+                        <span class="user-avatar" aria-hidden="true">G</span>
+                        <span class="user-meta">
+                            <strong>Guest access</strong>
+                            <span>Sign in to take attendance</span>
+                        </span>
+                        <a class="btn btn-ghost btn-sm" href="login.php">Sign in</a>
+                    </div>
+                <?php endif; ?>
             </div>
         </header>
 
@@ -314,6 +345,7 @@ function render_field(array $field): void
             <select class="field-control" id="<?= e($name) ?>" name="<?= e($name) ?>" <?= $describedBy ?>>
                 <?php foreach ($options as $option): ?>
                     <option value="<?= e((string) ($option['value'] ?? '')) ?>"
+                        <?= isset($option['class_id']) ? 'data-class-id="' . (int) $option['class_id'] . '"' : '' ?>
                         <?= !empty($option['selected']) ? 'selected' : '' ?>>
                         <?= e((string) ($option['label'] ?? '')) ?>
                     </option>

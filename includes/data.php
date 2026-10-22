@@ -138,7 +138,8 @@ function fetch_recent_sessions(PDO $pdo, int $limit): array
                 (SELECT COUNT(*) FROM attendance a2
                   WHERE a2.session_id = se.id AND a2.status = \'absent\')    AS absent_count,
                 (SELECT COUNT(*) FROM attendance a3
-                  WHERE a3.session_id = se.id AND a3.status = \'not_marked\') AS pending_count
+                  WHERE a3.session_id = se.id
+                    AND a3.status IN (\'not_marked\',\'review\')) AS pending_count
            FROM attendance_sessions se
            JOIN classes c  ON c.id  = se.class_id
            JOIN subjects su ON su.id = se.subject_id

@@ -333,7 +333,7 @@ render_page_start('dashboard', 'Attendance overview');
                             <strong>Take Manual Attendance</strong>
                             <span>Mark a class register by roll number</span>
                         </span>
-                        <span class="badge badge-grey">Phase 5</span>
+                        <span class="badge badge-green">Live</span>
                     </a>
                 </li>
                 <li>
@@ -397,7 +397,14 @@ render_page_start('dashboard', 'Attendance overview');
                 </li>
                 <li>
                     <span class="status-label">Sign-in</span>
-                    <span class="status-value"><span class="badge badge-grey">Not implemented</span></span>
+                    <span class="status-value">
+                        <?php $dashUser = auth_user(); ?>
+                        <?php if ($dashUser !== null): ?>
+                            <span class="badge badge-green">Signed in</span>
+                        <?php else: ?>
+                            <span class="badge badge-amber">Required for attendance</span>
+                        <?php endif; ?>
+                    </span>
                 </li>
             </ul>
         </section>

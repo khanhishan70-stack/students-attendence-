@@ -122,6 +122,7 @@ CREATE TABLE IF NOT EXISTS `attendance_sessions` (
     `created_by`      INT UNSIGNED  NULL DEFAULT NULL,
     `session_date`    DATE          NOT NULL,
     `session_label`   VARCHAR(100)  NOT NULL,
+    `seconds_per_student` SMALLINT UNSIGNED NOT NULL DEFAULT 30,
     `attendance_mode` ENUM('manual','qr') NOT NULL DEFAULT 'manual',
     `status`          ENUM('scheduled','open','closed') NOT NULL DEFAULT 'scheduled',
     `started_at`      DATETIME      NULL DEFAULT NULL,
@@ -149,12 +150,13 @@ CREATE TABLE IF NOT EXISTS `attendance_sessions` (
 -- ----------------------------------------------------------------------------
 -- G. attendance - one row per student per session
 --     A correction is an UPDATE of the same row, never a second row.
+--     'review' was added in Phase 5 so the REVIEW button stores a real status.
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `attendance` (
     `id`          INT UNSIGNED NOT NULL AUTO_INCREMENT,
     `session_id`  INT UNSIGNED NOT NULL,
     `student_id`  INT UNSIGNED NOT NULL,
-    `status`      ENUM('present','absent','not_marked') NOT NULL DEFAULT 'not_marked',
+    `status`      ENUM('present','absent','review','not_marked') NOT NULL DEFAULT 'not_marked',
     `marked_by`   INT UNSIGNED NULL DEFAULT NULL,
     `marked_at`   DATETIME     NULL DEFAULT NULL,
     `updated_at`  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
