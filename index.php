@@ -8,7 +8,7 @@ require __DIR__ . '/config/db.php';
 
 $projectName    = 'SMART ATTENDANCE AI';
 $projectTagline = 'Dual-Mode Digital Student Attendance Management System';
-$phaseLabel     = 'PHASE 2 — DATABASE INTEGRATION';
+$phaseLabel     = 'PHASE 3 — DASHBOARD UI';
 $currentYear    = (int) date('Y');
 
 $tables = [
@@ -86,22 +86,23 @@ try {
                         manual roll-number attendance and mobile QR-code attendance into one
                         clean, responsive web application.
                     </p>
-
                     <div class="hero-actions">
-                        <a class="btn btn-primary" href="#database">See the schema</a>
+                        <a class="btn btn-primary" href="dashboard.php">Open dashboard</a>
+                        <a class="btn btn-ghost" href="#database">See the schema</a>
                         <a class="btn btn-ghost" href="#status">View phase status</a>
                     </div>
 
                     <p class="hero-note">
-                        The relational foundation is live. Attendance tracking, QR scanning,
-                        login and reports are still not implemented.
+                        The relational foundation is live and the dashboard interface is
+                        built. Attendance tracking, QR scanning, login and reports are
+                        still not implemented.
                     </p>
                 </div>
 
                 <aside class="system-card" aria-labelledby="snapshot-title">
                     <div class="system-card-head">
                         <h2 id="snapshot-title">Project snapshot</h2>
-                        <span class="chip">Phase 2 of 6</span>
+                        <span class="chip">Phase 3 of 7</span>
                     </div>
 
                     <ul class="snapshot-list">
@@ -252,18 +253,19 @@ try {
             <div class="container status-grid">
                 <div class="status-copy">
                     <p class="section-kicker">Build progress</p>
-                    <h2 id="status-title">Phase 2 wires the data layer</h2>
+                    <h2 id="status-title">Phase 3 builds the dashboard interface</h2>
                     <p class="section-text">
-                        The schema, the connection layer and the seeded demo data are in place.
-                        Application screens that use them arrive in the next phases.
+                        The schema, the connection layer, the seeded demo data and the
+                        responsive dashboard shell are in place. The screens that write
+                        attendance arrive in the next phases.
                     </p>
 
                     <div class="notice" role="note">
                         <strong>Attendance features are still not available.</strong>
                         <p>
-                            Login, student management screens, manual marking, QR scanning, OCR,
-                            AI insights and reports are not part of this phase. The database
-                            stores the demo records listed above and nothing more.
+                            The dashboard reads real records from the database, but login,
+                            student management screens, manual marking, QR scanning, OCR,
+                            AI insights and reports are not part of this phase.
                         </p>
                     </div>
                 </div>
@@ -277,24 +279,32 @@ try {
                         </div>
                         <span class="phase-state">Done</span>
                     </li>
-                    <li class="phase-item is-current">
+                    <li class="phase-item is-done">
                         <span class="phase-index">02</span>
                         <div>
                             <h3>Database design</h3>
                             <p>MySQL schema, relationships, triggers, and connection layer.</p>
                         </div>
+                        <span class="phase-state">Done</span>
+                    </li>
+                    <li class="phase-item is-current">
+                        <span class="phase-index">03</span>
+                        <div>
+                            <h3>Dashboard &amp; navigation</h3>
+                            <p>Responsive application shell, statistics and screen placeholders.</p>
+                        </div>
                         <span class="phase-state">Current</span>
                     </li>
                     <li class="phase-item">
-                        <span class="phase-index">03</span>
+                        <span class="phase-index">04</span>
                         <div>
-                            <h3>Authentication &amp; students</h3>
-                            <p>Accounts, roles, and student record management.</p>
+                            <h3>Students, classes &amp; subjects</h3>
+                            <p>Accounts, roles, and academic record management.</p>
                         </div>
                         <span class="phase-state">Planned</span>
                     </li>
                     <li class="phase-item">
-                        <span class="phase-index">04</span>
+                        <span class="phase-index">05</span>
                         <div>
                             <h3>Manual attendance</h3>
                             <p>Roll-number-based marking and session records.</p>
@@ -302,7 +312,7 @@ try {
                         <span class="phase-state">Planned</span>
                     </li>
                     <li class="phase-item">
-                        <span class="phase-index">05</span>
+                        <span class="phase-index">06</span>
                         <div>
                             <h3>QR attendance</h3>
                             <p>Session QR codes and mobile check-in.</p>
@@ -310,7 +320,7 @@ try {
                         <span class="phase-state">Planned</span>
                     </li>
                     <li class="phase-item">
-                        <span class="phase-index">06</span>
+                        <span class="phase-index">07</span>
                         <div>
                             <h3>Reports &amp; insights</h3>
                             <p>Attendance reports, summaries, and AI-assisted analysis.</p>

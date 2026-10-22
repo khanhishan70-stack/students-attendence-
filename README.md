@@ -5,14 +5,14 @@
 A second-year Diploma Computer Engineering DBMS project that will combine manual
 roll-number attendance and mobile QR-code attendance in one responsive web application.
 
-The project is being built in phases. This repository currently contains **Phase 1 and
-Phase 2**: the environment foundation, a responsive project landing page, and the
-complete relational database layer. Attendance screens, QR scanning, authentication
-and reports do not exist yet.
+The project is being built in phases. This repository currently contains **Phase 1 to
+Phase 3**: the environment foundation, the responsive project landing page, the
+complete relational database layer, and a responsive dashboard application shell.
+Attendance screens, QR scanning, authentication and reports do not exist yet.
 
 ## Technology Stack
 
-- Frontend: HTML5, CSS3, JavaScript
+- Frontend: HTML5, CSS3, JavaScript (no frameworks, no external dependencies)
 - Backend: PHP 8.2 (PDO / MySQL)
 - Database: MariaDB 10.4 (MySQL compatible), InnoDB, utf8mb4
 - Local server: Apache via XAMPP
@@ -34,15 +34,27 @@ and reports do not exist yet.
 
 ```text
 smart-attendance/
-├── index.php
+├── index.php              project landing page
+├── dashboard.php          main dashboard screen
+├── students.php           screen shell (Phase 4)
+├── classes.php            screen shell (Phase 4)
+├── subjects.php           screen shell (Phase 4)
+├── manual-attendance.php  screen shell (Phase 5)
+├── qr-attendance.php      screen shell (Phase 6)
+├── reports.php            screen shell (Phase 7)
+├── settings.php           screen shell (Phase 4)
 ├── README.md
 ├── .gitignore
+├── .htaccess
 ├── config/
 │   ├── database.example.php
 │   ├── database.php          (local only, never committed)
 │   ├── db.php
 │   ├── helpers.php
 │   └── .gitkeep
+├── includes/
+│   ├── layout.php            shared shell: head, sidebar, top bar, footer
+│   └── data.php              dashboard queries (read only)
 ├── assets/
 │   ├── css/
 │   │   └── style.css
@@ -89,12 +101,28 @@ Closing those command windows stops the corresponding server.
 With Apache running, open:
 
 ```text
-http://localhost/smart-attendance/
+http://localhost/smart-attendance/          project landing page
+http://localhost/smart-attendance/dashboard.php   dashboard application
 ```
 
 The landing page shows a live database status line and the row count of every
-table. If the status reads **Unavailable**, the database is not running or the
-schema has not been imported yet.
+table. The dashboard shows the same information as a proper application shell.
+If the status reads **Unavailable**, the database is not running or the schema
+has not been imported yet.
+
+## Application Screens
+
+| Screen | URL | Status |
+| --- | --- | --- |
+| Project overview | `/smart-attendance/` | Working |
+| Dashboard | `/smart-attendance/dashboard.php` | Working, read-only data |
+| Students | `/smart-attendance/students.php` | Placeholder for Phase 4 |
+| Classes | `/smart-attendance/classes.php` | Placeholder for Phase 4 |
+| Subjects | `/smart-attendance/subjects.php` | Placeholder for Phase 4 |
+| Manual Attendance | `/smart-attendance/manual-attendance.php` | Placeholder for Phase 5 |
+| QR Attendance | `/smart-attendance/qr-attendance.php` | Placeholder for Phase 6 |
+| Reports | `/smart-attendance/reports.php` | Placeholder for Phase 7 |
+| Settings | `/smart-attendance/settings.php` | Placeholder for Phase 4 |
 
 ## Database Setup
 
@@ -141,16 +169,34 @@ If `config/database.php` is missing, copy `config/database.example.php` to
   3 subjects, 2 sessions, 8 attendance records).
 - Landing page now shows live connection state and table row counts.
 
+### Implemented in Phase 3
+
+- Responsive application shell: fixed sidebar on desktop, off-canvas drawer with
+  backdrop on phones and tablets.
+- Shared layout in `includes/layout.php` reused by every screen.
+- Dashboard with four live statistic cards: total students, present today,
+  absent today and average attendance.
+- Recent attendance sessions panel with present, absent and pending counts.
+- CSS based attendance overview chart built from real daily aggregates.
+- Low attendance panel for students below 75%.
+- Quick actions panel linking to the six management screens.
+- Status panel showing connection state, session count and marked records.
+- Accessible navigation: skip link, `aria-current` on the active item, drawer
+  toggle with `aria-expanded`, focus handling, Escape to close and focus trap.
+- Mobile friendly tables that turn into labelled record cards on small screens.
+- Placeholder screens for Students, Classes, Subjects, Manual Attendance,
+  QR Attendance, Reports and Settings — each states clearly that it is not built.
+
 ### Not Implemented
 
 - Login screens and session handling.
-- Student, class and subject management screens.
+- Creating, editing or deleting records of any kind.
 - Manual attendance marking.
 - QR code generation or scanning.
 - OCR or other AI features.
-- Attendance reports and analytics screens.
+- Attendance report screens and exports.
 
-The landing page does not claim that these features work.
+The dashboard only reads verified records. Nothing on it writes to the database.
 
 ## Development Phases
 
@@ -158,13 +204,17 @@ The landing page does not claim that these features work.
    local server verification.
 2. **Phase 2 — Database design** (done): MySQL schema, relationships, triggers,
    seed data, connection configuration and live status on the landing page.
-3. **Phase 3 — Authentication and students**: accounts, roles, student records.
-4. **Phase 4 — Manual attendance**: roll-number-based marking and session records.
-5. **Phase 5 — QR attendance**: session QR codes and mobile check-in.
-6. **Phase 6 — Reports and insights**: attendance reports, summaries, and
+3. **Phase 3 — Dashboard UI** (done): responsive application shell, navigation,
+   live statistics, session list, attendance chart, low attendance list and
+   screen placeholders.
+4. **Phase 4 — Accounts and academic records**: sign-in, roles, students,
+   classes and subjects.
+5. **Phase 5 — Manual attendance**: roll-number-based marking and session records.
+6. **Phase 6 — QR attendance**: session QR codes and mobile check-in.
+7. **Phase 7 — Reports and insights**: attendance reports, summaries, and
    AI-assisted analysis.
 
-Phase 3 has not started.
+Phase 4 has not started.
 
 ## Configuration and Secrets
 
@@ -193,6 +243,8 @@ Phase 3 has not started.
 
 ## Notes
 
-- Phase 1 creates the foundation and Phase 2 adds the data layer.
+- Phase 1 creates the foundation, Phase 2 adds the data layer and Phase 3 adds
+  the responsive dashboard interface.
 - No external paid services or API keys are used.
 - The database contains demo records only, used for testing the schema.
+- The dashboard is read-only in this phase: it reports what is really stored.
