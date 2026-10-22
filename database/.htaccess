@@ -1,0 +1,12 @@
+# SMART ATTENDANCE AI
+# SQL scripts are for the phpMyAdmin / command line import only.
+# Block direct downloads over HTTP.
+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+</IfModule>

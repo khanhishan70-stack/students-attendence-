@@ -5,15 +5,16 @@
 A second-year Diploma Computer Engineering DBMS project that will combine manual
 roll-number attendance and mobile QR-code attendance in one responsive web application.
 
-The project is being built in phases. This repository currently contains **Phase 1 only**:
-the environment foundation and a responsive project landing page. No attendance
-functionality, QR scanning, authentication, or database integration exists yet.
+The project is being built in phases. This repository currently contains **Phase 1 and
+Phase 2**: the environment foundation, a responsive project landing page, and the
+complete relational database layer. Attendance screens, QR scanning, authentication
+and reports do not exist yet.
 
 ## Technology Stack
 
 - Frontend: HTML5, CSS3, JavaScript
-- Backend: PHP 8.2
-- Database: MySQL / MariaDB (Phase 2)
+- Backend: PHP 8.2 (PDO / MySQL)
+- Database: MariaDB 10.4 (MySQL compatible), InnoDB, utf8mb4
 - Local server: Apache via XAMPP
 - Database administration: phpMyAdmin
 - Version control: Git (optional)
@@ -37,6 +38,10 @@ smart-attendance/
 ├── README.md
 ├── .gitignore
 ├── config/
+│   ├── database.example.php
+│   ├── database.php          (local only, never committed)
+│   ├── db.php
+│   ├── helpers.php
 │   └── .gitkeep
 ├── assets/
 │   ├── css/
@@ -46,26 +51,30 @@ smart-attendance/
 │   └── images/
 │       └── .gitkeep
 ├── database/
+│   ├── schema.sql
+│   ├── seed.sql
 │   └── .gitkeep
 └── docs/
+    ├── database.md
     └── .gitkeep
 ```
 
-- `config/` is reserved for local configuration such as database credentials in Phase 2.
-- `database/` is reserved for SQL schema and seed files in Phase 2.
-- `docs/` is reserved for project documentation.
+- `config/database.php` holds the local database credentials and is excluded by
+  `.gitignore`. `config/database.example.php` is the tracked template.
+- `config/db.php` is the PDO connection layer used by every page.
+- `database/schema.sql` creates the structure, `database/seed.sql` loads demo data.
+- `docs/database.md` documents the schema, the integrity rules and useful queries.
 
 ## Starting Apache and MySQL
 
 1. Open `C:\xampp\xampp-control.exe`.
 2. Click **Start** next to **Apache**. Wait for the module to turn green.
-3. Click **Start** next to **MySQL** when database work begins in Phase 2.
-   Phase 1 does not require MySQL.
+3. Click **Start** next to **MySQL**. The database is required from Phase 2 onwards.
 4. To stop the servers, click **Stop** for each running module.
 
 Only one MySQL/MariaDB instance can use port 3306. A separate standalone
 MySQL Server 8.4 installation exists on this computer but is not registered as a
-service. Do not start both MySQL instances at the same time.
+service. Do not start it and do not start XAMPP MySQL at the same time.
 
 If a Start button in the Control Panel does not respond, the batch scripts work
 as a fallback:
@@ -83,8 +92,27 @@ With Apache running, open:
 http://localhost/smart-attendance/
 ```
 
-If Apache is not running, the URL will not load. Start Apache from the XAMPP
-Control Panel first.
+The landing page shows a live database status line and the row count of every
+table. If the status reads **Unavailable**, the database is not running or the
+schema has not been imported yet.
+
+## Database Setup
+
+The schema has already been imported into `smart_attendance` on this machine. To
+re-import it on a fresh machine:
+
+```bash
+cd C:\xampp\htdocs\smart-attendance
+C:\xampp\mysql\bin\mysql.exe -u root < database\schema.sql
+C:\xampp\mysql\bin\mysql.exe -u root < database\seed.sql
+```
+
+Both scripts are idempotent — importing them again never drops a table or
+duplicates a row. The same files can be imported through phpMyAdmin
+(**Import** tab, select `smart_attendance`).
+
+If `config/database.php` is missing, copy `config/database.example.php` to
+`config/database.php` and adjust the values.
 
 ## Current Implementation Status
 
@@ -98,37 +126,51 @@ Control Panel first.
 - Phase status tracking on the page.
 - Safe output escaping for dynamic values.
 
+### Implemented in Phase 2
+
+- `smart_attendance` database with seven InnoDB tables and utf8mb4 encoding.
+- Foreign keys across classes, students, subjects, sessions, users and attendance.
+- Unique constraints for email, class identity, subject code, enrolment and
+  attendance per student per session.
+- Four triggers that enforce class enrolment and roll number uniqueness.
+- Composite foreign key guaranteeing a session uses a subject of its own class.
+- Reporting view `v_attendance_records` plus report oriented indexes.
+- PDO connection layer in `config/db.php` with prepared statements and strict
+  SQL mode.
+- Idempotent seed data (2 users, 2 classes, 6 students, 6 enrolments,
+  3 subjects, 2 sessions, 8 attendance records).
+- Landing page now shows live connection state and table row counts.
+
 ### Not Implemented
 
-- Database schema and database connection.
-- Login and user roles.
-- Student and class management.
-- Manual attendance.
+- Login screens and session handling.
+- Student, class and subject management screens.
+- Manual attendance marking.
 - QR code generation or scanning.
 - OCR or other AI features.
-- Attendance reports and analytics.
-- Any storage or retrieval of attendance data.
+- Attendance reports and analytics screens.
 
 The landing page does not claim that these features work.
 
 ## Development Phases
 
-1. **Phase 1 — Environment setup** (current): project foundation, landing page,
+1. **Phase 1 — Environment setup** (done): project foundation, landing page,
    local server verification.
-2. **Phase 2 — Database design**: MySQL schema, relationships, and connection
-   configuration.
+2. **Phase 2 — Database design** (done): MySQL schema, relationships, triggers,
+   seed data, connection configuration and live status on the landing page.
 3. **Phase 3 — Authentication and students**: accounts, roles, student records.
 4. **Phase 4 — Manual attendance**: roll-number-based marking and session records.
 5. **Phase 5 — QR attendance**: session QR codes and mobile check-in.
 6. **Phase 6 — Reports and insights**: attendance reports, summaries, and
    AI-assisted analysis.
 
-Phase 2 has not started. Database integration begins there.
+Phase 3 has not started.
 
 ## Configuration and Secrets
 
 - Never commit database passwords, API keys, or private credentials.
-- Keep local credentials in `config/` files that are excluded by `.gitignore`.
+- Keep local credentials in `config/database.php`, which is excluded by `.gitignore`.
+- Passwords in the database are stored as bcrypt hashes only.
 - The `.gitignore` also excludes environment files, logs, temporary files, editor
   folders, and local database dumps.
 
@@ -143,11 +185,14 @@ Phase 2 has not started. Database integration begins there.
   `http://localhost/...`, not by double-clicking `index.php`.
 - **MySQL will not start:** another MySQL instance may already use port 3306.
   Stop one instance before starting the other.
+- **Database shows as unavailable:** confirm MySQL is running in the XAMPP Control
+  Panel, that `config/database.php` exists, and that `database/schema.sql` has
+  been imported.
 - **Styles or script missing:** confirm `assets/css/style.css` and
   `assets/js/app.js` exist and keep their relative paths unchanged.
 
 ## Notes
 
-- Phase 1 creates the foundation only.
-- The database schema is intentionally absent.
+- Phase 1 creates the foundation and Phase 2 adds the data layer.
 - No external paid services or API keys are used.
+- The database contains demo records only, used for testing the schema.

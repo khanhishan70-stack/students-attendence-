@@ -3,14 +3,37 @@ declare(strict_types=1);
 
 header('Content-Type: text/html; charset=UTF-8');
 
+require __DIR__ . '/config/helpers.php';
+require __DIR__ . '/config/db.php';
+
 $projectName    = 'SMART ATTENDANCE AI';
 $projectTagline = 'Dual-Mode Digital Student Attendance Management System';
-$phaseLabel     = 'PHASE 1 — ENVIRONMENT SETUP';
+$phaseLabel     = 'PHASE 2 — DATABASE INTEGRATION';
 $currentYear    = (int) date('Y');
 
-function e(string $value): string
-{
-    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+$tables = [
+    ['name' => 'users', 'purpose' => 'Teachers and admins, bcrypt password hashes only.', 'keys' => ['PK id', 'UNIQUE email']],
+    ['name' => 'classes', 'purpose' => 'Department, academic year and division.', 'keys' => ['PK id', 'UNIQUE identity']],
+    ['name' => 'students', 'purpose' => 'Student profiles, roll numbers stored as text.', 'keys' => ['PK id', 'indexed roll']],
+    ['name' => 'enrollments', 'purpose' => 'Links a student to a class per academic year.', 'keys' => ['FK students', 'FK classes']],
+    ['name' => 'subjects', 'purpose' => 'Subjects taught inside a class.', 'keys' => ['FK classes', 'UNIQUE code']],
+    ['name' => 'attendance_sessions', 'purpose' => 'One lecture session in manual or QR mode.', 'keys' => ['FK classes', 'FK subjects']],
+    ['name' => 'attendance', 'purpose' => 'Present, absent or not marked per student.', 'keys' => ['FK sessions', 'FK students', 'FK users']],
+];
+
+$dbConnected = false;
+$dbCounts    = [];
+
+try {
+    $pdo        = db();
+    $dbConnected = true;
+
+    foreach ($tables as $table) {
+        $dbCounts[$table['name']] = (int) $pdo->query('SELECT COUNT(*) FROM `' . $table['name'] . '`')->fetchColumn();
+    }
+} catch (Throwable $exception) {
+    $dbConnected = false;
+    error_log('[smart-attendance] landing page database check failed: ' . $exception->getMessage());
 }
 ?>
 <!DOCTYPE html>
@@ -18,9 +41,9 @@ function e(string $value): string
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Smart Attendance AI — a dual-mode digital student attendance management system. Phase 1 foundation preview.">
+    <meta name="description" content="Smart Attendance AI — a dual-mode digital student attendance management system. Phase 2 database foundation.">
     <meta name="theme-color" content="#050b1a">
-    <title><?= e($projectName) ?> | Phase 1 Foundation</title>
+    <title><?= e($projectName) ?> | Phase 2 Database Foundation</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="assets/js/app.js" defer></script>
 </head>
@@ -40,6 +63,7 @@ function e(string $value): string
             <nav class="site-nav" aria-label="Primary navigation">
                 <a href="#overview">Overview</a>
                 <a href="#modes">Modes</a>
+                <a href="#database">Database</a>
                 <a href="#status">Status</a>
             </nav>
         </div>
@@ -64,20 +88,20 @@ function e(string $value): string
                     </p>
 
                     <div class="hero-actions">
-                        <a class="btn btn-primary" href="#modes">Explore the modes</a>
+                        <a class="btn btn-primary" href="#database">See the schema</a>
                         <a class="btn btn-ghost" href="#status">View phase status</a>
                     </div>
 
                     <p class="hero-note">
-                        Foundation build only — attendance tracking, QR scanning, and database
-                        connectivity are not implemented yet.
+                        The relational foundation is live. Attendance tracking, QR scanning,
+                        login and reports are still not implemented.
                     </p>
                 </div>
 
                 <aside class="system-card" aria-labelledby="snapshot-title">
                     <div class="system-card-head">
                         <h2 id="snapshot-title">Project snapshot</h2>
-                        <span class="chip">Phase 1 of 6</span>
+                        <span class="chip">Phase 2 of 6</span>
                     </div>
 
                     <ul class="snapshot-list">
@@ -91,7 +115,17 @@ function e(string $value): string
                         </li>
                         <li>
                             <span class="snapshot-label">Database</span>
-                            <span class="snapshot-value"><span class="dot dot-amber" aria-hidden="true"></span>Phase 2</span>
+                            <span class="snapshot-value">
+                                <?php if ($dbConnected): ?>
+                                    <span class="dot dot-green" aria-hidden="true"></span>Connected
+                                <?php else: ?>
+                                    <span class="dot dot-red" aria-hidden="true"></span>Unavailable
+                                <?php endif; ?>
+                            </span>
+                        </li>
+                        <li>
+                            <span class="snapshot-label">Schema</span>
+                            <span class="snapshot-value"><?= $dbConnected ? count($tables) . ' InnoDB tables' : 'Not loaded' ?></span>
                         </li>
                         <li>
                             <span class="snapshot-label">Attendance logic</span>
@@ -100,8 +134,8 @@ function e(string $value): string
                     </ul>
 
                     <p class="system-card-foot">
-                        This page confirms the project foundation renders correctly. No live
-                        attendance data is read or stored.
+                        The connection check is read-only. No attendance data is written by this
+                        page, and no server or credential details are exposed.
                     </p>
                 </aside>
             </div>
@@ -113,8 +147,9 @@ function e(string $value): string
                     <p class="section-kicker">Two planned attendance modes</p>
                     <h2 id="modes-title">One system, two ways to mark attendance</h2>
                     <p class="section-text">
-                        Both modes are described below so the project scope is clear. They are
-                        planned features and are not functional in Phase 1.
+                        Both modes are described below so the project scope is clear. The
+                        database can already store both, but the marking screens are planned
+                        features and are not functional yet.
                     </p>
                 </div>
 
@@ -137,7 +172,7 @@ function e(string $value): string
                             <li>Present and absent review</li>
                             <li>Simple, fast classroom workflow</li>
                         </ul>
-                        <p class="mode-status">Not implemented yet</p>
+                        <p class="mode-status">Schema ready · screens not implemented</p>
                     </article>
 
                     <article class="mode-card">
@@ -160,8 +195,55 @@ function e(string $value): string
                             <li>Phone-friendly scanning flow</li>
                             <li>Duplicate-entry checks planned</li>
                         </ul>
-                        <p class="mode-status">Not implemented yet</p>
+                        <p class="mode-status">Schema ready · screens not implemented</p>
                     </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section database" id="database" aria-labelledby="database-title">
+            <div class="container">
+                <div class="section-head">
+                    <p class="section-kicker">Relational foundation</p>
+                    <h2 id="database-title">Seven tables, rules enforced by the database</h2>
+                    <p class="section-text">
+                        The schema lives in <code>smart_attendance</code> with InnoDB storage and
+                        utf8mb4 encoding. Foreign keys, unique constraints and triggers protect
+                        the data no matter which screen writes to it.
+                    </p>
+                </div>
+
+                <div class="db-grid">
+                    <?php foreach ($tables as $table): ?>
+                        <article class="db-card">
+                            <h3 class="db-name"><?= e($table['name']) ?></h3>
+                            <p class="db-purpose"><?= e($table['purpose']) ?></p>
+                            <ul class="db-tags">
+                                <?php foreach ($table['keys'] as $key): ?>
+                                    <li class="db-tag"><?= e($key) ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                            <p class="db-count">
+                                <?php if ($dbConnected): ?>
+                                    <?= (int) ($dbCounts[$table['name']] ?? 0) ?> rows
+                                <?php else: ?>
+                                    Database offline
+                                <?php endif; ?>
+                            </p>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="db-rules">
+                    <h3>Integrity rules already in place</h3>
+                    <ul class="rule-list">
+                        <li>A subject used in a session must belong to the session class (composite foreign key).</li>
+                        <li>A student can only receive attendance in a class they are enrolled in for that academic year (trigger).</li>
+                        <li>Roll numbers are unique inside a class and academic year, but may repeat across classes (trigger).</li>
+                        <li>One attendance row per student per session, so a correction updates the row instead of adding another.</li>
+                        <li>Several lectures of the same subject on the same date are allowed.</li>
+                        <li>Passwords are stored as bcrypt hashes and role, mode and status columns only accept their allowed values.</li>
+                    </ul>
                 </div>
             </div>
         </section>
@@ -170,38 +252,38 @@ function e(string $value): string
             <div class="container status-grid">
                 <div class="status-copy">
                     <p class="section-kicker">Build progress</p>
-                    <h2 id="status-title">Phase 1 creates the foundation only</h2>
+                    <h2 id="status-title">Phase 2 wires the data layer</h2>
                     <p class="section-text">
-                        The current deliverable is the project structure and this responsive
-                        landing page. Database integration begins in Phase 2.
+                        The schema, the connection layer and the seeded demo data are in place.
+                        Application screens that use them arrive in the next phases.
                     </p>
 
                     <div class="notice" role="note">
-                        <strong>Attendance features are not available.</strong>
+                        <strong>Attendance features are still not available.</strong>
                         <p>
-                            Login, student records, manual attendance, QR scanning, OCR, AI
-                            insights, and reports are not part of this phase. Nothing on this
-                            page records or stores attendance.
+                            Login, student management screens, manual marking, QR scanning, OCR,
+                            AI insights and reports are not part of this phase. The database
+                            stores the demo records listed above and nothing more.
                         </p>
                     </div>
                 </div>
 
                 <ol class="phase-list">
-                    <li class="phase-item is-current">
+                    <li class="phase-item is-done">
                         <span class="phase-index">01</span>
                         <div>
                             <h3>Environment setup</h3>
                             <p>Project structure, landing page, and local XAMPP verification.</p>
                         </div>
-                        <span class="phase-state">Current</span>
+                        <span class="phase-state">Done</span>
                     </li>
-                    <li class="phase-item">
+                    <li class="phase-item is-current">
                         <span class="phase-index">02</span>
                         <div>
                             <h3>Database design</h3>
-                            <p>MySQL schema, relationships, and connection configuration.</p>
+                            <p>MySQL schema, relationships, triggers, and connection layer.</p>
                         </div>
-                        <span class="phase-state">Next</span>
+                        <span class="phase-state">Current</span>
                     </li>
                     <li class="phase-item">
                         <span class="phase-index">03</span>
